@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en"><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fastnote</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.css" rel="stylesheet" />
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="border-b bg-white/80 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold">F</div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">Fastnote</h1>
+          <p class="text-xs text-slate-500">Colorful, safe results in one place</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <!-- Search Card -->
+    <section class="bg-white shadow-sm rounded-2xl p-6 border border-slate-100">
+      <h2 class="text-xl font-semibold mb-1">Search the web safely</h2>
+      <p class="text-sm text-slate-600 mb-4">Ask a question and Fastnote will show a friendly answer with safe images, articles, and videos from reliable sources.</p>
+      <form id="search-form" class="flex flex-col gap-3 md:flex-row md:items-center">
+        <label class="sr-only" for="query">Search query</label>
+        <input id="query" name="query" type="text" required
+               class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+               placeholder="e.g. How do rainbows form?" />
+        <button type="submit"
+                class="inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+          Search safely
+        </button>
+      </form>
+      <p class="mt-3 text-xs text-slate-500">Explicit nudity and graphic violence are filtered. Some results may be hidden for safety.</p>
+    </section>
+
+    <!-- AI Answer -->
+    <section id="ai-section" class="hidden bg-white shadow-sm rounded-2xl p-6 border border-slate-100">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <h2 class="text-lg font-semibold">Fastnote answer</h2>
+        <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 border border-primary-100">Safe summary</span>
+      </div>
+      <p id="ai-paragraph" class="text-sm text-slate-700 mb-3"></p>
+      <ul id="ai-bullets" class="list-disc list-inside text-sm text-slate-700 space-y-1"></ul>
+      <div class="mt-4 border-t pt-3">
+        <p class="text-[11px] text-slate-500">At the end of every search, Fastnote suggests reliable sources (like Wikipedia, NASA, and educational YouTube channels) so you can learn more in depth.</p>
+      </div>
+    </section>
+
+    <!-- Results Grid -->
+    <section id="results-wrapper" class="hidden grid gap-6 lg:grid-cols-3 md:grid-cols-2">
+      <!-- Images -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Images</h3>
+          <span id="images-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="images-empty" class="text-xs text-slate-500">No images yet. Try a new search.</div>
+        <div id="images-grid" class="hidden grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Articles -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Articles</h3>
+          <span id="articles-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="articles-empty" class="text-xs text-slate-500">No articles yet. Try a new search.</div>
+        <div id="articles-list" class="hidden flex flex-col gap-2"></div>
+      </div>
+
+      <!-- Videos -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Videos</h3>
+          <span id="videos-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="videos-empty" class="text-xs text-slate-500">No videos yet. Try a new search.</div>
+        <div id="videos-list" class="hidden flex flex-col gap-2"></div>
+      </div>
+    </section>
+
+    <p id="safety-note" class="hidden text-xs text-slate-500">Some results may have been removed for safety (explicit nudity or graphic violence).</p>
+  </main>
+
+  <footer class="border-t bg-white mt-8">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-[11px] text-slate-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+      <span>Fastnote &copy; <span id="year"></span></span>
+      <span>Designed for ages 12 and up with safety filters.</span>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+  <script>
+    Parse.initialize('hJXSicxdPsNO0YDmdspi3x9jst70Oxr0QfYyusO1', 'FOjPOXCtW0NhAE7o216Nk3ncmywCOO4yqc1zZO6f');
+    Parse.serverURL = 'https://parseapi.back4app.com';
+  </script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const forbiddenWords = [
+      'sex', 'sexual', 'porn', 'nude', 'naked', 'xxx', 'erotic', 'blood', 'gore', 'gory', 'beheading', 'torture', 'murder', 'kill', 'decapitation'
+    ];
+
+    function isSafe(text) {
+      if (!text) return true;
+      const lower = text.toLowerCase();
+      return !forbiddenWords.some(w => lower.includes(w));
+    }
+
+    // Build links to well-known, reliable sources for the given topic
+    function buildReliableLinks(topicRaw) {
+      const raw = topicRaw.trim();
+      const topic = encodeURIComponent(raw || 'science');
+
+      return {
+        articles: [
+          {
+            title: 'Wikipedia overview',
+            snippet: 'Wikipedia article related to your topic. Good starting point for general understanding.',
+            url: `https://en.wikipedia.org/wiki/Special:Search?search=${topic}&go=Go&ns0=1`,
+          },
+          {
+            title: 'Britannica (scholarly reference)',
+            snippet: 'Encyclopedia Britannica results with curated explanations and references.',
+            url: `https://www.britannica.com/search?query=${topic}`,
+          },
+          {
+            title: 'Khan Academy search',
+            snippet: 'Free lessons and exercises, especially strong for math and science topics.',
+            url: `https://www.khanacademy.org/search?page_search_query=${topic}`,
+          },
+          {
+            title: 'Google Scholar (advanced)',
+            snippet: 'Academic articles about your topic, better for advanced learners.',
+            url: `https://scholar.google.com/scholar?q=${topic}`,
+          },
+        ],
+        images: [
+          {
+            title: 'Wikimedia Commons images',
+            description: 'Freely usable media related to your topic.',
+            url: `https://commons.wikimedia.org/w/index.php?search=${topic}&title=Special:MediaSearch&type=image`,
+            thumb: `https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg?auto=compress&cs=tinysrgb&w=400`,
+          },
+          {
+            title: 'Pixabay safe images',
+            description: 'Safe stock photos and illustrations related to your topic.',
+            url: `https://pixabay.com/images/search/${topic}/`,
+            thumb: `https://images.pexels.com/photos/2837009/pexels-photo-2837009.jpeg?auto=compress&cs=tinysrgb&w=400`,
+          },
+        ],
+        videos: [
+          {
+            title: 'YouTube educational videos',
+            snippet: 'General YouTube search for your topic. Choose channels that look educational and trusted.',
+            url: `https://www.youtube.com/results?search_query=${topic}`,
+            thumb: 'https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
+          },
+          {
+            title: 'TED-Ed (for many topics)',
+            snippet: 'Short, animated explanations on many school-friendly topics.',
+            url: raw
+              ? `https://www.youtube.com/results?search_query=${encodeURIComponent(raw + ' TED-Ed')}`
+              : 'https://www.youtube.com/@TED-Ed/videos',
+            thumb: 'https://img.youtube.com/vi/3T7jMcstxYg/hqdefault.jpg',
+          },
+          {
+            title: 'Khan Academy videos',
+            snippet: 'Video lessons with practice exercises.',
+            url: raw
+              ? `https://www.youtube.com/results?search_query=${encodeURIComponent(raw + ' Khan Academy')}`
+              : 'https://www.youtube.com/@khanacademy/videos',
+            thumb: 'https://img.youtube.com/vi/5_5oE5lgrhw/hqdefault.jpg',
+          },
+        ],
+      };
+    }
+
+    function buildAiAnswer(query) {
+      const topic = (query || 'your topic').trim();
+      const cleanTopic = topic || 'this topic';
+      const paragraph = `Here is a safe, friendly overview of ${cleanTopic}. Fastnote points you to trusted educational sources so you can explore more on your own, at your own speed.`;
+
+      const bullets = [
+        `Start with Wikipedia or Britannica to get a broad, text-based overview of ${cleanTopic}.`,
+        `Use Khan Academy if you want step-by-step lessons and practice, especially for school subjects.`,
+        `Check images from Wikimedia Commons or Pixabay to see what ${cleanTopic} looks like.`,
+        `Watch videos from channels like Khan Academy or TED-Ed for visual explanations.`,
+        'If something feels confusing, ask a teacher or trusted adult, or search again using simpler words.',
+      ];
+
+      return { paragraph, bullets };
+    }
+
+    function renderResults(links) {
+      let removedForSafety = false;
+
+      const safeImages = links.images.filter(i => {
+        const ok = isSafe(i.title) && isSafe(i.description);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+      const safeArticles = links.articles.filter(a => {
+        const ok = isSafe(a.title) && isSafe(a.snippet);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+      const safeVideos = links.videos.filter(v => {
+        const ok = isSafe(v.title) && isSafe(v.snippet);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+
+      const imagesGrid = document.getElementById('images-grid');
+      const imagesEmpty = document.getElementById('images-empty');
+      const imagesCount = document.getElementById('images-count');
+      imagesGrid.innerHTML = '';
+      if (safeImages.length) {
+        imagesEmpty.classList.add('hidden');
+        imagesGrid.classList.remove('hidden');
+        safeImages.forEach(img => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'overflow-hidden rounded-xl border border-slate-100 bg-slate-50 hover:shadow-sm transition-shadow text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1';
+          card.onclick = () => {
+            window.open(img.url, '_blank', 'noopener');
+          };
+          const thumbUrl = img.thumb || img.url;
+          card.innerHTML = `
+            <img src="${thumbUrl}" alt="${img.title}" class="w-full h-28 object-cover" />
+            <div class="p-2">
+              <p class="text-[11px] font-medium text-slate-800 line-clamp-2">${img.title}</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">Click to open source</p>
+            </div>
+          `;
+          imagesGrid.appendChild(card);
+        });
+      } else {
+        imagesEmpty.classList.remove('hidden');
+        imagesGrid.classList.add('hidden');
+      }
+      imagesCount.textContent = `${safeImages.length} result${safeImages.length === 1 ? '' : 's'}`;
+
+      const articlesList = document.getElementById('articles-list');
+      const articlesEmpty = document.getElementById('articles-empty');
+      const articlesCount = document.getElementById('articles-count');
+      articlesList.innerHTML = '';
+      if (safeArticles.length) {
+        articlesEmpty.classList.add('hidden');
+        articlesList.classList.remove('hidden');
+        safeArticles.forEach(a => {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl border border-slate-100 bg-slate-50 p-2 hover:shadow-sm transition-shadow';
+          card.innerHTML = `
+            <h4 class="text-xs font-semibold text-slate-900 mb-0.5 line-clamp-2">${a.title}</h4>
+            <p class="text-[11px] text-slate-600 line-clamp-2 mb-1.5">${a.snippet}</p>
+            <a href="${a.url}" class="inline-flex items-center text-[11px] font-medium text-primary-600 hover:text-primary-700" target="_blank" rel="noopener noreferrer">Open source</a>
+          `;
+          articlesList.appendChild(card);
+        });
+      } else {
+        articlesEmpty.classList.remove('hidden');
+        articlesList.classList.add('hidden');
+      }
+      articlesCount.textContent = `${safeArticles.length} result${safeArticles.length === 1 ? '' : 's'}`;
+
+      const videosList = document.getElementById('videos-list');
+      const videosEmpty = document.getElementById('videos-empty');
+      const videosCount = document.getElementById('videos-count');
+      videosList.innerHTML = '';
+      if (safeVideos.length) {
+        videosEmpty.classList.add('hidden');
+        videosList.classList.remove('hidden');
+        safeVideos.forEach(v => {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl border border-slate-100 bg-slate-50 p-2 hover:shadow-sm transition-shadow flex gap-2';
+          const thumbUrl = v.thumb || 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+          card.innerHTML = `
+            <div class="w-20 h-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
+              <img src="${thumbUrl}" alt="Thumbnail for ${v.title}" class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-semibold text-slate-900 mb-0.5 line-clamp-2">${v.title}</h4>
+              <p class="text-[11px] text-slate-600 line-clamp-2 mb-1.5">${v.snippet}</p>
+              <a href="${v.url}" class="inline-flex items-center text-[11px] font-medium text-primary-600 hover:text-primary-700" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+            </div>
+          `;
+          videosList.appendChild(card);
+        });
+      } else {
+        videosEmpty.classList.remove('hidden');
+        videosList.classList.add('hidden');
+      }
+      videosCount.textContent = `${safeVideos.length} result${safeVideos.length === 1 ? '' : 's'}`;
+
+      const safetyNote = document.getElementById('safety-note');
+      if (removedForSafety) {
+        safetyNote.classList.remove('hidden');
+      } else {
+        safetyNote.classList.add('hidden');
+      }
+    }
+
+    async function logSearch(query, totals, blocked) {
+      try {
+        const SearchLog = Parse.Object.extend('SearchLog');
+        const log = new SearchLog();
+        log.set('query', query);
+        log.set('resultsCount', totals);
+        log.set('unsafeBlockedCount', blocked);
+        await log.save();
+      } catch (error) {
+        console.error('Error logging search', error);
+      }
+    }
+
+    document.getElementById('search-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = document.getElementById('query').value;
+      if (!query.trim()) return;
+
+      const aiSection = document.getElementById('ai-section');
+      const resultsWrapper = document.getElementById('results-wrapper');
+      aiSection.classList.remove('hidden');
+      resultsWrapper.classList.remove('hidden');
+
+      document.getElementById('ai-paragraph').textContent = 'Fastnote is thinking about a safe answer...';
+      document.getElementById('ai-bullets').innerHTML = '<li class="text-sm text-slate-600">Preparing helpful points for you and reliable sources.</li>';
+
+      try {
+        const links = buildReliableLinks(query);
+        const answer = buildAiAnswer(query);
+
+        document.getElementById('ai-paragraph').textContent = answer.paragraph;
+        const bulletsEl = document.getElementById('ai-bullets');
+        bulletsEl.innerHTML = '';
+        answer.bullets.forEach(b => {
+          const li = document.createElement('li');
+          li.className = 'text-sm text-slate-700';
+          li.textContent = b;
+          bulletsEl.appendChild(li);
+        });
+
+        renderResults(links);
+        const total = links.images.length + links.articles.length + links.videos.length;
+        await logSearch(query, total, 0);
+      } catch (error) {
+        console.error(error);
+        document.getElementById('ai-paragraph').textContent = error.message || 'Something went wrong while preparing the answer.';
+        document.getElementById('ai-bullets').innerHTML = '';
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.js"></script>
+</body>
+</html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fastnote</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.css" rel="stylesheet" />
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="border-b bg-white/80 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold">F</div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">Fastnote</h1>
+          <p class="text-xs text-slate-500">Colorful, safe results in one place</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <!-- Search Card -->
+    <section class="bg-white shadow-sm rounded-2xl p-6 border border-slate-100">
+      <h2 class="text-xl font-semibold mb-1">Search the web safely</h2>
+      <p class="text-sm text-slate-600 mb-4">Ask a question and Fastnote will show a friendly answer with safe images, articles, and videos from reliable sources.</p>
+      <form id="search-form" class="flex flex-col gap-3 md:flex-row md:items-center">
+        <label class="sr-only" for="query">Search query</label>
+        <input id="query" name="query" type="text" required
+               class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+               placeholder="e.g. How do rainbows form?" />
+        <button type="submit"
+                class="inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+          Search safely
+        </button>
+      </form>
+      <p class="mt-3 text-xs text-slate-500">Explicit nudity and graphic violence are filtered. Some results may be hidden for safety.</p>
+    </section>
+
+    <!-- AI Answer -->
+    <section id="ai-section" class="hidden bg-white shadow-sm rounded-2xl p-6 border border-slate-100">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <h2 class="text-lg font-semibold">Fastnote answer</h2>
+        <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 border border-primary-100">Safe summary</span>
+      </div>
+      <p id="ai-paragraph" class="text-sm text-slate-700 mb-3"></p>
+      <ul id="ai-bullets" class="list-disc list-inside text-sm text-slate-700 space-y-1"></ul>
+      <div class="mt-4 border-t pt-3">
+        <p class="text-[11px] text-slate-500">At the end of every search, Fastnote suggests reliable sources (like Wikipedia, NASA, and educational YouTube channels) so you can learn more in depth.</p>
+      </div>
+    </section>
+
+    <!-- Results Grid -->
+    <section id="results-wrapper" class="hidden grid gap-6 lg:grid-cols-3 md:grid-cols-2">
+      <!-- Images -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Images</h3>
+          <span id="images-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="images-empty" class="text-xs text-slate-500">No images yet. Try a new search.</div>
+        <div id="images-grid" class="hidden grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Articles -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Articles</h3>
+          <span id="articles-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="articles-empty" class="text-xs text-slate-500">No articles yet. Try a new search.</div>
+        <div id="articles-list" class="hidden flex flex-col gap-2"></div>
+      </div>
+
+      <!-- Videos -->
+      <div class="bg-white shadow-sm rounded-2xl p-4 border border-slate-100 flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-sm">Videos</h3>
+          <span id="videos-count" class="text-[11px] text-slate-500">0 results</span>
+        </div>
+        <div id="videos-empty" class="text-xs text-slate-500">No videos yet. Try a new search.</div>
+        <div id="videos-list" class="hidden flex flex-col gap-2"></div>
+      </div>
+    </section>
+
+    <p id="safety-note" class="hidden text-xs text-slate-500">Some results may have been removed for safety (explicit nudity or graphic violence).</p>
+  </main>
+
+  <footer class="border-t bg-white mt-8">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-[11px] text-slate-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+      <span>Fastnote &copy; <span id="year"></span></span>
+      <span>Designed for ages 12 and up with safety filters.</span>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+  <script>
+    Parse.initialize('hJXSicxdPsNO0YDmdspi3x9jst70Oxr0QfYyusO1', 'FOjPOXCtW0NhAE7o216Nk3ncmywCOO4yqc1zZO6f');
+    Parse.serverURL = 'https://parseapi.back4app.com';
+  </script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const forbiddenWords = [
+      'sex', 'sexual', 'porn', 'nude', 'naked', 'xxx', 'erotic', 'blood', 'gore', 'gory', 'beheading', 'torture', 'murder', 'kill', 'decapitation'
+    ];
+
+    function isSafe(text) {
+      if (!text) return true;
+      const lower = text.toLowerCase();
+      return !forbiddenWords.some(w => lower.includes(w));
+    }
+
+    // Build links to well-known, reliable sources for the given topic
+    function buildReliableLinks(topicRaw) {
+      const raw = topicRaw.trim();
+      const topic = encodeURIComponent(raw || 'science');
+
+      return {
+        articles: [
+          {
+            title: 'Wikipedia overview',
+            snippet: 'Wikipedia article related to your topic. Good starting point for general understanding.',
+            url: `https://en.wikipedia.org/wiki/Special:Search?search=${topic}&go=Go&ns0=1`,
+          },
+          {
+            title: 'Britannica (scholarly reference)',
+            snippet: 'Encyclopedia Britannica results with curated explanations and references.',
+            url: `https://www.britannica.com/search?query=${topic}`,
+          },
+          {
+            title: 'Khan Academy search',
+            snippet: 'Free lessons and exercises, especially strong for math and science topics.',
+            url: `https://www.khanacademy.org/search?page_search_query=${topic}`,
+          },
+          {
+            title: 'Google Scholar (advanced)',
+            snippet: 'Academic articles about your topic, better for advanced learners.',
+            url: `https://scholar.google.com/scholar?q=${topic}`,
+          },
+        ],
+        images: [
+          {
+            title: 'Wikimedia Commons images',
+            description: 'Freely usable media related to your topic.',
+            url: `https://commons.wikimedia.org/w/index.php?search=${topic}&title=Special:MediaSearch&type=image`,
+            thumb: `https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg?auto=compress&cs=tinysrgb&w=400`,
+          },
+          {
+            title: 'Pixabay safe images',
+            description: 'Safe stock photos and illustrations related to your topic.',
+            url: `https://pixabay.com/images/search/${topic}/`,
+            thumb: `https://images.pexels.com/photos/2837009/pexels-photo-2837009.jpeg?auto=compress&cs=tinysrgb&w=400`,
+          },
+        ],
+        videos: [
+          {
+            title: 'YouTube educational videos',
+            snippet: 'General YouTube search for your topic. Choose channels that look educational and trusted.',
+            url: `https://www.youtube.com/results?search_query=${topic}`,
+            thumb: 'https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg',
+          },
+          {
+            title: 'TED-Ed (for many topics)',
+            snippet: 'Short, animated explanations on many school-friendly topics.',
+            url: raw
+              ? `https://www.youtube.com/results?search_query=${encodeURIComponent(raw + ' TED-Ed')}`
+              : 'https://www.youtube.com/@TED-Ed/videos',
+            thumb: 'https://img.youtube.com/vi/3T7jMcstxYg/hqdefault.jpg',
+          },
+          {
+            title: 'Khan Academy videos',
+            snippet: 'Video lessons with practice exercises.',
+            url: raw
+              ? `https://www.youtube.com/results?search_query=${encodeURIComponent(raw + ' Khan Academy')}`
+              : 'https://www.youtube.com/@khanacademy/videos',
+            thumb: 'https://img.youtube.com/vi/5_5oE5lgrhw/hqdefault.jpg',
+          },
+        ],
+      };
+    }
+
+    function buildAiAnswer(query) {
+      const topic = (query || 'your topic').trim();
+      const cleanTopic = topic || 'this topic';
+      const paragraph = `Here is a safe, friendly overview of ${cleanTopic}. Fastnote points you to trusted educational sources so you can explore more on your own, at your own speed.`;
+
+      const bullets = [
+        `Start with Wikipedia or Britannica to get a broad, text-based overview of ${cleanTopic}.`,
+        `Use Khan Academy if you want step-by-step lessons and practice, especially for school subjects.`,
+        `Check images from Wikimedia Commons or Pixabay to see what ${cleanTopic} looks like.`,
+        `Watch videos from channels like Khan Academy or TED-Ed for visual explanations.`,
+        'If something feels confusing, ask a teacher or trusted adult, or search again using simpler words.',
+      ];
+
+      return { paragraph, bullets };
+    }
+
+    function renderResults(links) {
+      let removedForSafety = false;
+
+      const safeImages = links.images.filter(i => {
+        const ok = isSafe(i.title) && isSafe(i.description);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+      const safeArticles = links.articles.filter(a => {
+        const ok = isSafe(a.title) && isSafe(a.snippet);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+      const safeVideos = links.videos.filter(v => {
+        const ok = isSafe(v.title) && isSafe(v.snippet);
+        if (!ok) removedForSafety = true;
+        return ok;
+      });
+
+      const imagesGrid = document.getElementById('images-grid');
+      const imagesEmpty = document.getElementById('images-empty');
+      const imagesCount = document.getElementById('images-count');
+      imagesGrid.innerHTML = '';
+      if (safeImages.length) {
+        imagesEmpty.classList.add('hidden');
+        imagesGrid.classList.remove('hidden');
+        safeImages.forEach(img => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'overflow-hidden rounded-xl border border-slate-100 bg-slate-50 hover:shadow-sm transition-shadow text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1';
+          card.onclick = () => {
+            window.open(img.url, '_blank', 'noopener');
+          };
+          const thumbUrl = img.thumb || img.url;
+          card.innerHTML = `
+            <img src="${thumbUrl}" alt="${img.title}" class="w-full h-28 object-cover" />
+            <div class="p-2">
+              <p class="text-[11px] font-medium text-slate-800 line-clamp-2">${img.title}</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">Click to open source</p>
+            </div>
+          `;
+          imagesGrid.appendChild(card);
+        });
+      } else {
+        imagesEmpty.classList.remove('hidden');
+        imagesGrid.classList.add('hidden');
+      }
+      imagesCount.textContent = `${safeImages.length} result${safeImages.length === 1 ? '' : 's'}`;
+
+      const articlesList = document.getElementById('articles-list');
+      const articlesEmpty = document.getElementById('articles-empty');
+      const articlesCount = document.getElementById('articles-count');
+      articlesList.innerHTML = '';
+      if (safeArticles.length) {
+        articlesEmpty.classList.add('hidden');
+        articlesList.classList.remove('hidden');
+        safeArticles.forEach(a => {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl border border-slate-100 bg-slate-50 p-2 hover:shadow-sm transition-shadow';
+          card.innerHTML = `
+            <h4 class="text-xs font-semibold text-slate-900 mb-0.5 line-clamp-2">${a.title}</h4>
+            <p class="text-[11px] text-slate-600 line-clamp-2 mb-1.5">${a.snippet}</p>
+            <a href="${a.url}" class="inline-flex items-center text-[11px] font-medium text-primary-600 hover:text-primary-700" target="_blank" rel="noopener noreferrer">Open source</a>
+          `;
+          articlesList.appendChild(card);
+        });
+      } else {
+        articlesEmpty.classList.remove('hidden');
+        articlesList.classList.add('hidden');
+      }
+      articlesCount.textContent = `${safeArticles.length} result${safeArticles.length === 1 ? '' : 's'}`;
+
+      const videosList = document.getElementById('videos-list');
+      const videosEmpty = document.getElementById('videos-empty');
+      const videosCount = document.getElementById('videos-count');
+      videosList.innerHTML = '';
+      if (safeVideos.length) {
+        videosEmpty.classList.add('hidden');
+        videosList.classList.remove('hidden');
+        safeVideos.forEach(v => {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl border border-slate-100 bg-slate-50 p-2 hover:shadow-sm transition-shadow flex gap-2';
+          const thumbUrl = v.thumb || 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+          card.innerHTML = `
+            <div class="w-20 h-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-200">
+              <img src="${thumbUrl}" alt="Thumbnail for ${v.title}" class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-semibold text-slate-900 mb-0.5 line-clamp-2">${v.title}</h4>
+              <p class="text-[11px] text-slate-600 line-clamp-2 mb-1.5">${v.snippet}</p>
+              <a href="${v.url}" class="inline-flex items-center text-[11px] font-medium text-primary-600 hover:text-primary-700" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+            </div>
+          `;
+          videosList.appendChild(card);
+        });
+      } else {
+        videosEmpty.classList.remove('hidden');
+        videosList.classList.add('hidden');
+      }
+      videosCount.textContent = `${safeVideos.length} result${safeVideos.length === 1 ? '' : 's'}`;
+
+      const safetyNote = document.getElementById('safety-note');
+      if (removedForSafety) {
+        safetyNote.classList.remove('hidden');
+      } else {
+        safetyNote.classList.add('hidden');
+      }
+    }
+
+    async function logSearch(query, totals, blocked) {
+      try {
+        const SearchLog = Parse.Object.extend('SearchLog');
+        const log = new SearchLog();
+        log.set('query', query);
+        log.set('resultsCount', totals);
+        log.set('unsafeBlockedCount', blocked);
+        await log.save();
+      } catch (error) {
+        console.error('Error logging search', error);
+      }
+    }
+
+    document.getElementById('search-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = document.getElementById('query').value;
+      if (!query.trim()) return;
+
+      const aiSection = document.getElementById('ai-section');
+      const resultsWrapper = document.getElementById('results-wrapper');
+      aiSection.classList.remove('hidden');
+      resultsWrapper.classList.remove('hidden');
+
+      document.getElementById('ai-paragraph').textContent = 'Fastnote is thinking about a safe answer...';
+      document.getElementById('ai-bullets').innerHTML = '<li class="text-sm text-slate-600">Preparing helpful points for you and reliable sources.</li>';
+
+      try {
+        const links = buildReliableLinks(query);
+        const answer = buildAiAnswer(query);
+
+        document.getElementById('ai-paragraph').textContent = answer.paragraph;
+        const bulletsEl = document.getElementById('ai-bullets');
+        bulletsEl.innerHTML = '';
+        answer.bullets.forEach(b => {
+          const li = document.createElement('li');
+          li.className = 'text-sm text-slate-700';
+          li.textContent = b;
+          bulletsEl.appendChild(li);
+        });
+
+        renderResults(links);
+        const total = links.images.length + links.articles.length + links.videos.length;
+        await logSearch(query, total, 0);
+      } catch (error) {
+        console.error(error);
+        document.getElementById('ai-paragraph').textContent = error.message || 'Something went wrong while preparing the answer.';
+        document.getElementById('ai-bullets').innerHTML = '';
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.0/dist/flowbite.min.js"></script>
+</body>
+</html>
